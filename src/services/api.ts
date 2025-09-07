@@ -117,7 +117,7 @@ createUser: async (userData: any) => {
       
       console.log('Modification utilisateur avec données:', userData);
       
-      const response = await fetch(`http://localhost:8000/api/auth/users/${id}/`, {
+      const response = await fetch(`http://localhost:8000${endpoints.importDataset}`, {
         method: 'PATCH', // Utiliser PATCH au lieu de PUT pour les mises à jour partielles
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,

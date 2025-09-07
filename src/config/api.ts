@@ -161,4 +161,7 @@ export const endpoints = {
   
   // Messaging
   messages: '/messaging/messages/',
+  
+  // Dataset import
+  importDataset: '/products/import-dataset/',
 };

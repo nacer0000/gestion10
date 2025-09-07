@@ -139,6 +139,13 @@ export const ManagerProduitsPage: React.FC = () => {
     }
   };
 
+  // Fonction pour recharger les données après import
+  const handleDatasetImportComplete = async () => {
+    setShowDatasetModal(false);
+    await fetchProduits();
+    await fetchFournisseurs();
+  };
+
   const handleEdit = (produit: Produit) => {
     setEditingProduit(produit);
     setFormData({
@@ -472,7 +479,7 @@ export const ManagerProduitsPage: React.FC = () => {
 
       {/* Dataset Import Modal */}
       {showDatasetModal && (
-        <DatasetImport onClose={() => setShowDatasetModal(false)} />
+        <DatasetImport onClose={handleDatasetImportComplete} />
       )}
     </div>
   );

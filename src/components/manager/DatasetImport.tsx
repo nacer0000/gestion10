@@ -253,17 +253,18 @@ export const DatasetImport: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                   magasin: user.magasin_id,
                   quantite: rowData.stock
                 });
-                result.stocksCreated++;
-              }
-            } catch (error) {
-              result.errors.push(`Ligne ${index + 2}: Erreur gestion stock - ${error.message}`);
-            }
-          }
-
-        } catch (error) {
-          result.errors.push(`Ligne ${index + 2}: Erreur générale - ${error.message}`);
-        }
-      }
+      console.log('Début de l\'import du dataset...');
+      const response = await productsService.importDataset(file);
+      console.log('Réponse de l\'import:', response);
+      
+      const result: ImportResult = {
+        produitsCreated: response.stats?.produits_created || 0,
+        produitsUpdated: response.stats?.produits_updated || 0,
+        fournisseursCreated: response.stats?.fournisseurs_created || 0,
+        stocksCreated: response.stats?.stocks_created || 0,
+        stocksUpdated: response.stats?.stocks_updated || 0,
+        errors: response.stats?.errors || []
+      };
 
       setResult(result);
       
