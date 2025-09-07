@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Edit, Trash2, Search, Package, AlertTriangle, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Package, AlertTriangle, Save, X, Upload } from 'lucide-react';
 import { productsService, suppliersService, stockService } from '../../services/api';
 import { normalizeApiResponse } from '../../config/api';
 import { useAuth } from '../../hooks/useAuth';
 import { Produit, Fournisseur } from '../../types';
 import { ImageUpload } from '../ImageUpload';
+import { DatasetImport } from './DatasetImport';
 import toast from 'react-hot-toast';
 
 export const ManagerProduitsPage: React.FC = () => {
@@ -15,6 +16,7 @@ export const ManagerProduitsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showDatasetModal, setShowDatasetModal] = useState(false);
   const [editingProduit, setEditingProduit] = useState<Produit | null>(null);
   const [formData, setFormData] = useState({
     nom: '',
@@ -212,6 +214,13 @@ export const ManagerProduitsPage: React.FC = () => {
           >
             <Plus className="h-5 w-5" />
             <span>Nouveau Produit</span>
+          </button>
+          <button
+            onClick={() => setShowDatasetModal(true)}
+            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2"
+          >
+            <Upload className="h-5 w-5" />
+            <span>Charger Dataset</span>
           </button>
         </div>
       </div>
@@ -459,6 +468,11 @@ export const ManagerProduitsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Dataset Import Modal */}
+      {showDatasetModal && (
+        <DatasetImport onClose={() => setShowDatasetModal(false)} />
       )}
     </div>
   );
