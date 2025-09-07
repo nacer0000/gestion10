@@ -109,161 +109,18 @@ export const DatasetImport: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     if (!file || !user?.magasin_id) return;
 
     setLoading(true);
-    const result: ImportResult = {
-      produitsCreated: 0,
-      produitsUpdated: 0,
-      fournisseursCreated: 0,
-      stocksCreated: 0,
-      stocksUpdated: 0,
-      errors: []
-    };
 
     try {
-      // Récupérer les données existantes
-      const [existingProducts, existingSuppliers, existingStocks] = await Promise.all([
-        productsService.getProducts(),
-        suppliersService.getSuppliers(),
-        stockService.getStocks()
-      ]);
-
-      // Parser le fichier complet
-      const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      const dataLines = lines.slice(1);
-
-      for (const [index, line] of dataLines.entries()) {
-        try {
-          const columns = line.split(',').map(col => col.trim().replace(/"/g, ''));
-          
-          if (columns.length < 7) {
-            result.errors.push(`Ligne ${index + 2}: Données incomplètes`);
-            continue;
-          }
-
-          const rowData: DatasetRow = {
-            nom: columns[0],
-            reference: columns[1],
-            categorie: columns[2],
-            prix: parseFloat(columns[3]) || 0,
-            seuil_alerte: parseInt(columns[4]) || 0,
-            fournisseur: columns[5],
-            stock: parseInt(columns[6]) || 0
-          };
-
-          // Validation des données
-          if (!rowData.nom || !rowData.reference) {
-            result.errors.push(`Ligne ${index + 2}: Nom et référence requis`);
-            continue;
-          }
-
-          // 1. Gérer le fournisseur
-          let fournisseurId = null;
-          if (rowData.fournisseur) {
-            const existingFournisseur = existingSuppliers.find(f => 
-              f.nom.toLowerCase() === rowData.fournisseur.toLowerCase()
-            );
-
-            if (existingFournisseur) {
-              fournisseurId = existingFournisseur.id;
-            } else {
-              // Créer le nouveau fournisseur
-              try {
-                const newFournisseur = await suppliersService.createSupplier({
-                  nom: rowData.fournisseur,
-                  adresse: 'Adresse à compléter',
-                  contact: 'Contact à compléter',
-                  magasin: user.magasin_id
-                });
-                fournisseurId = newFournisseur.id;
-                existingSuppliers.push(newFournisseur);
-                result.fournisseursCreated++;
-              } catch (error) {
-                result.errors.push(`Ligne ${index + 2}: Erreur création fournisseur - ${error.message}`);
-                continue;
-              }
-            }
-          }
-
-          // 2. Gérer le produit
-          const existingProduct = existingProducts.find(p => 
-            p.reference.toLowerCase() === rowData.reference.toLowerCase()
-          );
-
-          let produitId = null;
-          if (existingProduct) {
-            // Mettre à jour le produit existant
-            try {
-              const updatedProduct = await productsService.updateProduct(existingProduct.id, {
-                nom: rowData.nom,
-                reference: rowData.reference,
-                categorie: rowData.categorie,
-                prix_unitaire: rowData.prix,
-                seuil_alerte: rowData.seuil_alerte,
-                fournisseur: fournisseurId,
-                magasin: user.magasin_id
-              });
-              produitId = updatedProduct.id;
-              result.produitsUpdated++;
-            } catch (error) {
-              result.errors.push(`Ligne ${index + 2}: Erreur mise à jour produit - ${error.message}`);
-              continue;
-            }
-          } else {
-            // Créer le nouveau produit
-            try {
-              const newProduct = await productsService.createProduct({
-                nom: rowData.nom,
-                reference: rowData.reference,
-                categorie: rowData.categorie,
-                prix_unitaire: rowData.prix,
-                seuil_alerte: rowData.seuil_alerte,
-                fournisseur: fournisseurId,
-                magasin: user.magasin_id
-              });
-              produitId = newProduct.id;
-              existingProducts.push(newProduct);
-              result.produitsCreated++;
-            } catch (error) {
-              result.errors.push(`Ligne ${index + 2}: Erreur création produit - ${error.message}`);
-              continue;
-            }
-          }
-
-          // 3. Gérer le stock
-          if (produitId && rowData.stock > 0) {
-            try {
-              const existingStock = existingStocks.find(s => 
-                s.produit_id.toString() === produitId.toString() && 
-                s.magasin_id.toString() === user.magasin_id.toString()
-              );
-
-              if (existingStock) {
-                // Ajouter au stock existant
-                const newQuantity = existingStock.quantite + rowData.stock;
-                await stockService.updateStock(existingStock.id, {
-                  produit: produitId,
-                  magasin: user.magasin_id,
-                  quantite: newQuantity
-                });
-                result.stocksUpdated++;
-              } else {
-                // Créer un nouveau stock
-                await stockService.createStock({
-                  produit: produitId,
-                  magasin: user.magasin_id,
-                  quantite: rowData.stock
-                });
-      console.log('Début de l\'import du dataset...');
+      // Utiliser l'API backend pour traiter l'import
       const response = await productsService.importDataset(file);
-      console.log('Réponse de l\'import:', response);
       
       const result: ImportResult = {
-        produitsCreated: response.stats?.produits_created || 0,
-        produitsUpdated: response.stats?.produits_updated || 0,
-        fournisseursCreated: response.stats?.fournisseurs_created || 0,
-        stocksCreated: response.stats?.stocks_created || 0,
-        stocksUpdated: response.stats?.stocks_updated || 0,
-        errors: response.stats?.errors || []
+        produitsCreated: response.stats.produits_created,
+        produitsUpdated: response.stats.produits_updated,
+        fournisseursCreated: response.stats.fournisseurs_created,
+        stocksCreated: response.stats.stocks_created,
+        stocksUpdated: response.stats.stocks_updated,
+        errors: response.stats.errors
       };
 
       setResult(result);
@@ -519,3 +376,5 @@ export const DatasetImport: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     </div>
   );
 };
+
+export { DatasetImport }
