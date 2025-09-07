@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, X, Users, Bot } from 'lucide-react';
+import { MessageCircle, Send, X, Users } from 'lucide-react';
 import { messagingService, authService } from '../services/api';
 import { normalizeApiResponse } from '../config/api';
 import { useAuth } from '../hooks/useAuth';
 import { Message, User } from '../types';
-import { ChatBot } from './ChatBot';
 import toast from 'react-hot-toast';
 
 export const MessagingWidget: React.FC = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'messages' | 'chatbot'>('messages');
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -192,10 +190,8 @@ export const MessagingWidget: React.FC = () => {
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-blue-600 text-white rounded-t-lg">
             <div className="flex items-center space-x-2">
               <MessageCircle className="h-5 w-5" />
-              <span className="font-medium">
-                {activeTab === 'messages' ? 'Messages' : 'Assistant IA'}
-              </span>
-              {unreadCount > 0 && activeTab === 'messages' && (
+              <span className="font-medium">Messages</span>
+              {unreadCount > 0 && (
                 <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">
                   {unreadCount}
                 </span>
@@ -209,158 +205,124 @@ export const MessagingWidget: React.FC = () => {
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('messages')}
-              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors duration-200 ${
-                activeTab === 'messages'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <div className="flex items-center justify-center space-x-2">
-                <MessageCircle className="h-4 w-4" />
-                <span>Messages</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('chatbot')}
-              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors duration-200 ${
-                activeTab === 'chatbot'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <div className="flex items-center justify-center space-x-2">
-                <Bot className="h-4 w-4" />
-                <span>Assistant IA</span>
-              </div>
-            </button>
-          </div>
-
           {/* Content */}
           <div className="flex-1 overflow-hidden">
-            {activeTab === 'messages' ? (
-              <div className="flex h-full">
-                {/* Users List */}
-                <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
-                  <div className="p-2">
-                    <div className="flex items-center space-x-2 mb-2 text-xs text-gray-500">
-                      <Users className="h-3 w-3" />
-                      <span>
-                        {user.role === 'admin' ? 'Employés' : 'Administrateurs'}
-                      </span>
-                    </div>
-                    {users.length > 0 ? users.map((u) => {
-                      const userUnreadCount = getUserUnreadCount(u.id);
-                      return (
-                        <button
-                          key={u.id}
-                          onClick={() => handleUserSelect(u)}
-                          className={`w-full text-left p-2 rounded hover:bg-gray-100 transition-colors duration-200 relative ${
-                            selectedUser?.id === u.id ? 'bg-blue-50 border-l-2 border-blue-500' : ''
-                          }`}
-                        >
-                          <div className="text-sm font-medium text-gray-900 truncate">
-                            {u.prenom} {u.nom}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate">
-                            {u.email}
-                          </div>
-                          {userUnreadCount > 0 && (
-                            <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                              {userUnreadCount}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    }) : (
-                      <div className="text-center text-gray-500 text-sm p-4">
-                        Aucun utilisateur disponible
-                      </div>
-                    )}
+            <div className="flex h-full">
+              {/* Users List */}
+              <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
+                <div className="p-2">
+                  <div className="flex items-center space-x-2 mb-2 text-xs text-gray-500">
+                    <Users className="h-3 w-3" />
+                    <span>
+                      {user.role === 'admin' ? 'Employés' : 'Administrateurs'}
+                    </span>
                   </div>
-                </div>
-
-                {/* Chat Area */}
-                <div className="flex-1 flex flex-col">
-                  {selectedUser ? (
-                    <>
-                      {/* Messages */}
-                      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                        {getConversationMessages().length === 0 ? (
-                          <div className="text-center text-gray-500 text-sm mt-8">
-                            <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p>Aucun message</p>
-                            <p>Commencez la conversation !</p>
-                          </div>
-                        ) : (
-                          getConversationMessages().map((message) => (
-                            <div
-                              key={message.id}
-                              className={`flex ${
-                                message.sender_id === user.id.toString() ? 'justify-end' : 'justify-start'
-                              }`}
-                            >
-                              <div
-                                className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                                  message.sender_id === user.id.toString()
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200 text-gray-900'
-                                }`}
-                              >
-                                <p>{message.content}</p>
-                                <p className={`text-xs mt-1 ${
-                                  message.sender_id === user.id.toString() ? 'text-blue-100' : 'text-gray-500'
-                                }`}>
-                                  {message.timestamp.toLocaleTimeString('fr-FR', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                        <div ref={messagesEndRef} />
-                      </div>
-
-                      {/* Message Input */}
-                      <div className="p-3 border-t border-gray-200">
-                        <div className="flex space-x-2">
-                          <input
-                            type="text"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                            placeholder="Tapez votre message..."
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                          <button
-                            onClick={sendMessage}
-                            disabled={!newMessage.trim()}
-                            className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                          >
-                            <Send className="h-4 w-4" />
-                          </button>
+                  {users.length > 0 ? users.map((u) => {
+                    const userUnreadCount = getUserUnreadCount(u.id);
+                    return (
+                      <button
+                        key={u.id}
+                        onClick={() => handleUserSelect(u)}
+                        className={`w-full text-left p-2 rounded hover:bg-gray-100 transition-colors duration-200 relative ${
+                          selectedUser?.id === u.id ? 'bg-blue-50 border-l-2 border-blue-500' : ''
+                        }`}
+                      >
+                        <div className="text-sm font-medium text-gray-900 truncate">
+                          {u.prenom} {u.nom}
                         </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-500">
-                      <div className="text-center">
-                        <MessageCircle className="h-8 w-8 mx-auto mb-2" />
-                        <p className="text-sm">Sélectionnez un utilisateur</p>
-                        <p className="text-xs">pour commencer à discuter</p>
-                      </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {u.email}
+                        </div>
+                        {userUnreadCount > 0 && (
+                          <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {userUnreadCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }) : (
+                    <div className="text-center text-gray-500 text-sm p-4">
+                      Aucun utilisateur disponible
                     </div>
                   )}
                 </div>
               </div>
-            ) : (
-              <ChatBot />
-            )}
+
+              {/* Chat Area */}
+              <div className="flex-1 flex flex-col">
+                {selectedUser ? (
+                  <>
+                    {/* Messages */}
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                      {getConversationMessages().length === 0 ? (
+                        <div className="text-center text-gray-500 text-sm mt-8">
+                          <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>Aucun message</p>
+                          <p>Commencez la conversation !</p>
+                        </div>
+                      ) : (
+                        getConversationMessages().map((message) => (
+                          <div
+                            key={message.id}
+                            className={`flex ${
+                              message.sender_id === user.id.toString() ? 'justify-end' : 'justify-start'
+                            }`}
+                          >
+                            <div
+                              className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                                message.sender_id === user.id.toString()
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-200 text-gray-900'
+                              }`}
+                            >
+                              <p>{message.content}</p>
+                              <p className={`text-xs mt-1 ${
+                                message.sender_id === user.id.toString() ? 'text-blue-100' : 'text-gray-500'
+                              }`}>
+                                {message.timestamp.toLocaleTimeString('fr-FR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Message Input */}
+                    <div className="p-3 border-t border-gray-200">
+                      <div className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                          placeholder="Tapez votre message..."
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <button
+                          onClick={sendMessage}
+                          disabled={!newMessage.trim()}
+                          className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                        >
+                          <Send className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-gray-500">
+                    <div className="text-center">
+                      <MessageCircle className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-sm">Sélectionnez un utilisateur</p>
+                      <p className="text-xs">pour commencer à discuter</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

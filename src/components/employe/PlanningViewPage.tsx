@@ -34,27 +34,73 @@ export const PlanningViewPage: React.FC = () => {
   const fetchPlannings = async () => {
     setLoading(true);
     try {
+      console.log('=== FETCH PLANNING EMPLOYÉ ===');
+      console.log('User ID:', user?.id);
+      console.log('User role:', user?.role);
+      console.log('Semaine sélectionnée:', selectedWeek);
+      
       if (!user?.id) {
+        console.error('❌ Aucun ID utilisateur');
         setPlannings([]);
         setLoading(false);
         return;
       }
+      
       const weekStart = new Date(selectedWeek);
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
+      
+      console.log('Période:', {
+        debut: weekStart.toISOString().split('T')[0],
+        fin: weekEnd.toISOString().split('T')[0]
+      });
+      
       const params = {
         user: user.id,
         date__gte: weekStart.toISOString().split('T')[0],
         date__lte: weekEnd.toISOString().split('T')[0],
       };
-      const apiPlannings = await planningService.getPlannings(params);
-      setPlannings(apiPlannings.map((p: any) => ({
+      
+      console.log('Paramètres API:', params);
+      
+      // Essayer d'abord avec les paramètres de filtrage
+      let apiPlannings = [];
+      try {
+        apiPlannings = await planningService.getPlannings(params);
+        console.log('✅ Plannings reçus avec filtres:', apiPlannings.length);
+      } catch (error) {
+        console.warn('⚠️ Erreur avec filtres, essai sans filtres:', error);
+        // Si erreur, récupérer tous les plannings et filtrer côté client
+        const allPlannings = await planningService.getPlannings({});
+        apiPlannings = allPlannings.filter((p: any) => {
+          const planningDate = new Date(p.date);
+          const isUserPlanning = p.user?.toString() === user.id?.toString();
+          const isInWeek = planningDate >= weekStart && planningDate <= weekEnd;
+          
+          console.log('Planning filtré:', {
+            id: p.id,
+            user: p.user,
+            date: p.date,
+            isUserPlanning,
+            isInWeek
+          });
+          
+          return isUserPlanning && isInWeek;
+        });
+        console.log('✅ Plannings filtrés côté client:', apiPlannings.length);
+      }
+      
+      const formattedPlannings = apiPlannings.map((p: any) => ({
         ...p,
         user_id: p.user,
         date: new Date(p.date)
-      })));
+      }));
+      
+      console.log('✅ Plannings formatés pour affichage:', formattedPlannings);
+      setPlannings(formattedPlannings);
+      
     } catch (error) {
-      console.error('Erreur lors du chargement du planning:', error);
+      console.error('❌ Erreur lors du chargement du planning:', error);
       setPlannings([]);
     } finally {
       setLoading(false);
@@ -122,6 +168,13 @@ export const PlanningViewPage: React.FC = () => {
 
       {/* Planning Grid */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Debug info pour développement */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-50 border-b border-yellow-200 p-3 text-xs">
+            <strong>Debug:</strong> User ID: {user?.id} | Plannings trouvés: {plannings.length} | Semaine: {selectedWeek}
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-7 gap-0">
           {getWeekDays().map((day, index) => {
             const dayPlannings = getPlanningForDay(day);
@@ -164,6 +217,12 @@ export const PlanningViewPage: React.FC = () => {
                         {planning.notes && (
                           <div className={`text-sm ${isToday ? 'text-blue-700' : 'text-green-700'}`}>
                             {planning.notes}
+                          </div>
+                        )}
+                        {/* Debug info pour chaque planning */}
+                        {process.env.NODE_ENV === 'development' && (
+                          <div className="text-xs text-gray-500 mt-1 border-t pt-1">
+                            ID: {planning.id} | User: {planning.user_id}
                           </div>
                         )}
                       </div>
@@ -232,8 +291,18 @@ export const PlanningViewPage: React.FC = () => {
           <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun planning trouvé</h3>
           <p className="text-gray-600">
-            Aucun planning n'a été défini pour cette semaine.
+            Aucun planning n'a été défini pour cette semaine. Contactez votre manager si vous pensez qu'il devrait y en avoir un.
           </p>
+          {/* Debug info */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-4 text-xs text-gray-500 bg-gray-100 p-3 rounded">
+              <strong>Debug:</strong><br/>
+              User ID: {user?.id}<br/>
+              Magasin ID: {user?.magasin_id}<br/>
+              Semaine: {selectedWeek}<br/>
+              Plannings chargés: {plannings.length}
+            </div>
+          )}
         </div>
       )}
 

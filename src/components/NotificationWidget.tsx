@@ -135,7 +135,7 @@ export const NotificationWidget: React.FC = () => {
   };
 
   // Ne pas afficher pour les employés
-  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+  if (!user || user.role !== 'admin') {
     return null;
   }
 

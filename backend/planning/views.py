@@ -13,11 +13,29 @@ class PlanningListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if not hasattr(user, 'role') or user.role not in ['manager', 'admin']:
+        
+        # Admins peuvent voir tous les plannings
+        if user.role == 'admin':
+            return Planning.objects.all()
+        
+        # Managers peuvent voir les plannings de leur magasin
+        elif user.role == 'manager':
+            if user.magasin_id:
+                return Planning.objects.filter(magasin_id=user.magasin_id)
             return Planning.objects.none()
-        return super().get_queryset()
+        
+        # Employés peuvent voir leurs propres plannings
+        elif user.role == 'employe':
+            return Planning.objects.filter(user=user)
+        
+        # Par défaut, aucun accès
+        return Planning.objects.none()
     
     def perform_create(self, serializer):
+        # Seuls les managers et admins peuvent créer des plannings
+        user = self.request.user
+        if user.role not in ['manager', 'admin']:
+            raise PermissionError("Seuls les managers et admins peuvent créer des plannings")
         serializer.save(created_by=self.request.user)
 
 class PlanningDetailView(generics.RetrieveUpdateDestroyAPIView):

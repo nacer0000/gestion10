@@ -6,7 +6,6 @@ import { normalizeApiResponse } from '../../config/api';
 import { useAuth } from '../../hooks/useAuth';
 import { Produit, Stock, User } from '../../types';
 import { safeNumber } from '../../utils/numbers';
-import ManagerNotifications from './ManagerNotifications';
 
 // Fonction pour formater les nombres
 const formatNumber = (num: number): string => {

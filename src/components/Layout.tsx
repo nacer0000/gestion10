@@ -16,11 +16,12 @@ import {
   Bell,
   User,
   Calendar,
-  Eye
+  Eye,
+  Map
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { MessagingWidget } from './MessagingWidget';
-import { NotificationWidget } from './NotificationWidget';
+// Supprimé : import { NotificationWidget } from './NotificationWidget';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const adminMenuItems = [
     { icon: BarChart3, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: Store, label: 'Magasins', path: '/admin/magasins' },
+    { icon: Map, label: 'Carte', path: '/admin/carte' },
     { icon: Users, label: 'Utilisateurs', path: '/admin/utilisateurs' },
     { icon: Boxes, label: 'Stocks', path: '/admin/stocks' },
     { icon: Clock, label: 'Présences', path: '/admin/presences' },
@@ -121,9 +123,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </h1>
             </div>
             
-            {/* User info and notifications in top right */}
+            {/* User info in top right */}
             <div className="flex items-center space-x-4">
-              {user?.role === 'manager' && <NotificationWidget />}
+              {/* Supprimé : {user?.role === 'admin' && <NotificationWidget />} */}
               
               <div className="flex items-center space-x-3 bg-gray-50 rounded-lg px-3 py-2">
                 <div className="w-8 h-8 rounded-full overflow-hidden">
@@ -174,7 +176,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Messaging Widget */}
-      {user?.role !== 'admin' && <MessagingWidget />}
+      {(user?.role === 'manager' || user?.role === 'employe') && <MessagingWidget />}
     </div>
   );
 };

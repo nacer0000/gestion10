@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Database, Shield, Bell, Globe, Save } from 'lucide-react';
+import { Settings, Database, Shield, Globe, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const ParametresPage: React.FC = () => {
@@ -11,13 +11,6 @@ export const ParametresPage: React.FC = () => {
     
     // Paramètres de sécurité
     sessionTimeout: 30,
-    forcePasswordChange: false,
-    enableTwoFactor: false,
-    
-    // Paramètres de notification
-    emailNotifications: true,
-    stockAlerts: true,
-    lowStockThreshold: 10,
     
     // Paramètres de géolocalisation
     gpsRadius: 100,
@@ -60,7 +53,6 @@ export const ParametresPage: React.FC = () => {
   const tabs = [
     { id: 'general', label: 'Général', icon: Settings },
     { id: 'security', label: 'Sécurité', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'geolocation', label: 'Géolocalisation', icon: Globe },
     { id: 'backup', label: 'Sauvegarde', icon: Database }
   ];
@@ -168,105 +160,6 @@ export const ParametresPage: React.FC = () => {
                   max="480"
                 />
               </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Forcer le changement de mot de passe</h4>
-                    <p className="text-sm text-gray-500">Obliger les utilisateurs à changer leur mot de passe régulièrement</p>
-                  </div>
-                  <button
-                    onClick={() => handleSettingChange('forcePasswordChange', !settings.forcePasswordChange)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.forcePasswordChange ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        settings.forcePasswordChange ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Authentification à deux facteurs</h4>
-                    <p className="text-sm text-gray-500">Activer l'authentification à deux facteurs pour plus de sécurité</p>
-                  </div>
-                  <button
-                    onClick={() => handleSettingChange('enableTwoFactor', !settings.enableTwoFactor)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.enableTwoFactor ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        settings.enableTwoFactor ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'notifications' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900">Paramètres de notification</h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Notifications par email</h4>
-                    <p className="text-sm text-gray-500">Recevoir des notifications par email</p>
-                  </div>
-                  <button
-                    onClick={() => handleSettingChange('emailNotifications', !settings.emailNotifications)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.emailNotifications ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        settings.emailNotifications ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Alertes de stock</h4>
-                    <p className="text-sm text-gray-500">Recevoir des alertes quand le stock est bas</p>
-                  </div>
-                  <button
-                    onClick={() => handleSettingChange('stockAlerts', !settings.stockAlerts)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.stockAlerts ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        settings.stockAlerts ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Seuil d'alerte de stock bas
-                </label>
-                <input
-                  type="number"
-                  value={settings.lowStockThreshold}
-                  onChange={(e) => handleSettingChange('lowStockThreshold', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="1"
-                />
-              </div>
             </div>
           )}
 
@@ -351,12 +244,7 @@ export const ParametresPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-yellow-800 mb-2">Information importante</h4>
-                <p className="text-sm text-yellow-700">
-                  Les sauvegardes sont automatiquement gérées par le système. Ces paramètres sont informatifs et peuvent être utilisés pour des sauvegardes supplémentaires.
-                </p>
-              </div>
+              
             </div>
           )}
         </div>

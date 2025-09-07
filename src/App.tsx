@@ -23,6 +23,7 @@ import { EmployeDashboard } from './components/employe/EmployeDashboard';
 import { StockPage } from './components/employe/StockPage';
 import { PointagePage } from './components/employe/PointagePage';
 import { PlanningViewPage } from './components/employe/PlanningViewPage';
+import { MapPage } from './components/admin/MapPage';
 
 function App() {
   const { user, loading } = useAuth();
@@ -49,6 +50,7 @@ function App() {
                   <Routes>
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="magasins" element={<MagasinsPage />} />
+                    <Route path="carte" element={<MapPage />} />
                     <Route path="utilisateurs" element={<UtilisateursPage />} />
                     <Route path="stocks" element={<StockManagementPage />} />
                     <Route path="presences" element={<PresencesPage />} />
